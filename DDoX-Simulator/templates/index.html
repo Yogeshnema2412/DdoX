@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fancy DDoS Simulator (Web)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans leading-relaxed tracking-wide flex flex-col min-h-screen">
+  <main class="flex-grow container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-8">🔥 Ethical DDoS Simulator (Web)</h1>
+
+    <div class="bg-gray-800 rounded-xl shadow-lg p-6 max-w-xl mx-auto">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm mb-1" for="ip">Target IP</label>
+          <input id="ip" class="w-full px-3 py-2 rounded bg-gray-700 focus:outline-none" placeholder="127.0.0.1" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1" for="port">Port</label>
+          <input id="port" class="w-full px-3 py-2 rounded bg-gray-700 focus:outline-none" placeholder="80" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1" for="threads">Threads</label>
+          <input id="threads" class="w-full px-3 py-2 rounded bg-gray-700 focus:outline-none" placeholder="100" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1" for="method">Method</label>
+          <select id="method" class="w-full px-3 py-2 rounded bg-gray-700 focus:outline-none">
+            <option>HTTP Flood</option>
+            <option>UDP Flood</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-center mt-6 space-x-4">
+        <button id="startBtn" class="px-5 py-2 bg-green-600 hover:bg-green-700 rounded-lg shadow">Start</button>
+        <button id="stopBtn" class="px-5 py-2 bg-red-600 hover:bg-red-700 rounded-lg shadow">Stop</button>
+      </div>
+
+      <div class="mt-6">
+        <h2 class="text-xl font-semibold">Live Stats</h2>
+        <p id="stats" class="mt-2 text-lg">Packets Sent: 0</p>
+      </div>
+
+      <div class="mt-6">
+        <h2 class="text-xl font-semibold">Logs</h2>
+        <textarea id="log" class="w-full h-40 bg-gray-800 p-2 rounded resize-none" readonly>Simulation Logs...
+</textarea>
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-center py-4 text-gray-500 text-sm">
+    Ethical use only &middot; Simulated traffic
+  </footer>
+
+  <script>
+    const socket = io();
+
+    socket.on('stats', data => {
+      const statsEl = document.getElementById('stats');
+      statsEl.innerText = `Packets Sent: ${data.packets}`;
+      const logEl = document.getElementById('log');
+      logEl.value += `\n[${data.method}] Simulated packet sent...`;
+      logEl.scrollTop = logEl.scrollHeight;
+    });
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+
+    startBtn.addEventListener('click', async () => {
+      await fetch('/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ip: document.getElementById('ip').value || '127.0.0.1',
+          port: document.getElementById('port').value || '80',
+          threads: document.getElementById('threads').value || '100',
+          method: document.getElementById('method').value
+        })
+      });
+    });
+
+    stopBtn.addEventListener('click', async () => {
+      await fetch('/stop', { method: 'POST' });
+    });
+  </script>
+</body>
+</html>
